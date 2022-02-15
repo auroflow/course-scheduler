@@ -1,0 +1,6 @@
+{
+    "javascript.validate.enable": false,
+    "typescript.format.enable": false,
+    "typescript.suggestionActions.enabled": false,
+    "editor.tabSize": 2
+}
