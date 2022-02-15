@@ -3,29 +3,35 @@
     <template v-if="course">
       <div>
         <div class="row">
-          <label class="col-label" for="title">课程名</label>
-          <input
-            class="col-input"
-            id="title"
-            name="title"
-            v-model="course.title"
-          />
+          <div class="col">
+            <label class="col-label" for="title">课程名</label>
+            <input class="col" id="title" name="title" v-model="course.title" />
+          </div>
+          <div class="col">
+            <label class="col-label" for="instructor">教师</label>
+            <input
+              class="col"
+              id="instructor"
+              name="instructor"
+              v-model="course.instructor"
+            />
+          </div>
         </div>
-        <div class="row">
-          <label class="col-label" for="instructor">教师</label>
-          <input
-            class="col-input"
-            id="instructor"
-            name="instructor"
-            v-model="course.instructor"
-          />
-        </div>
+
         <div class="row">
           <label class="col-label">学期</label>
-          <div class="col-input">
-            <input name="quarter-start" v-model.number="course.quarterStart" />
+          <div class="col">
+            <select v-model="course.quarterStart">
+              <option v-for="(quarter, index) in quarters" :value="index">
+                {{ quarter.name }}
+              </option>
+            </select>
             <label class="text-in-form" for="quarter-end">-</label>
-            <input name="quarter-end" v-model.number="course.quarterEnd" />
+            <select v-model="course.quarterEnd">
+              <option v-for="(quarter, index) in quarters" :value="index">
+                {{ quarter.name }}
+              </option>
+            </select>
           </div>
         </div>
       </div>
@@ -33,38 +39,41 @@
         v-for="(section, index) in course.sections"
         :key="index"
         class="section-box"
+        :class="{
+          selected: isSelected(section),
+        }"
         open
       >
-        <summary class="title">
+        <summary>
           课时 {{ index + 1 }}
-          <button @click="deleteSection(section)" class="section-delete">
+          <button @click="deleteSection(section)" class="delete-btn">
             删除
           </button>
         </summary>
         <div class="row">
           <label class="col-label">时间</label>
-          <div class="col-input">
+          <div class="col">
             <select v-model="section.weekday">
               <option v-for="weekday in weekdays" :value="weekday.value">
                 {{ weekday.text }}
               </option>
             </select>
             <label class="text-in-form"></label>
-            <input name="start" v-model.number="section.start" />
+            <input type="number" name="start" v-model.number="section.start" />
             <label class="text-in-form">-</label>
-            <input name="end" v-model.number="section.end" />
+            <input type="number" name="end" v-model.number="section.end" />
             <label class="text-in-form">节</label>
           </div>
         </div>
         <div class="row">
           <label class="col-label">地点</label>
-          <div class="col-input">
+          <div class="col">
             <input name="location" v-model="section.location" />
           </div>
         </div>
         <div class="row">
           <label class="col-label">备注</label>
-          <div class="col-input">
+          <div class="col">
             <input name="location" v-model="course.sections[index].note" />
           </div>
         </div>
@@ -85,6 +94,7 @@ import { defineComponent } from 'vue'
 import { SectionOnEdit } from '../types'
 import { useScheduleStore } from '../stores/schedule'
 import { mapStores, mapState } from 'pinia'
+import { useSemesterStore } from '../stores/semester'
 
 export default defineComponent({
   data() {
@@ -127,9 +137,14 @@ export default defineComponent({
     ...mapState(useScheduleStore, {
       course: 'selectedCourse',
     }),
+    ...mapState(useSemesterStore, ['quarters']),
   },
 
   methods: {
+    isSelected(section: SectionOnEdit) {
+      return this.scheduleStore.selectedSection === section
+    },
+
     addSection() {
       this.course?.sections.push({
         weekday: null,
@@ -155,83 +170,4 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
-* {
-  box-sizing: border-box;
-}
-
-.form {
-  font-size: 14px;
-}
-
-input,
-select {
-  display: inline-block;
-  width: 100%;
-  padding: 8px;
-}
-
-label {
-  padding: 8px;
-}
-
-.row {
-  display: flex;
-  margin: 5px;
-}
-
-.col-label {
-  flex: 0 0 70px;
-}
-
-.col-input {
-  flex: 1;
-}
-
-div.col-input {
-  display: flex;
-}
-
-div.col-input > input,
-div.col-input > select {
-  flex: 1;
-}
-
-div.col-input > .text-in-form {
-  flex: 0 0 20px;
-  text-align: center;
-  padding: 8px 0;
-}
-
-/* 课时框 */
-.section-box {
-  margin-bottom: 5px;
-  border: 1px solid grey;
-  padding: 10px;
-}
-
-.section-box > .row {
-  margin-left: 20px;
-}
-
-.btn {
-  background-color: green;
-  color: white;
-  margin: 10px;
-  padding: 8px 14px;
-  min-width: 100px;
-  border: none;
-}
-
-.section-delete {
-  font-size: 12px;
-  background-color: transparent;
-  border: none;
-  float: right;
-}
-
-.float-right {
-  float: right;
-  margin-right: 0;
-}
-</style>
+<style scoped src="../css/form.css"></style>

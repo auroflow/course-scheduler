@@ -1,10 +1,3 @@
-<script setup>
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import CourseCalendar from './components/CourseCalendar.vue'
-import CourseEdit from './components/CourseEdit.vue'
-</script>
-
 <template>
   <div id="navbar">编辑课表</div>
   <div id="main-container">
@@ -12,10 +5,53 @@ import CourseEdit from './components/CourseEdit.vue'
       <CourseCalendar />
     </div>
     <div class="pane" id="pane-right">
-      <CourseEdit />
+      <div class="switch-pane">
+        <button
+          v-for="(pane, pidx) in panes"
+          :key="pane.name"
+          class="switch"
+          :class="{ selected: selected === pidx }"
+          @click="selected = pidx"
+        >
+          {{ pane.name }}
+        </button>
+      </div>
+      <div class="form-pane">
+        <component :is="panes[selected].component"></component>
+      </div>
     </div>
   </div>
 </template>
+
+<script>
+import { defineComponent } from 'vue'
+import CourseCalendar from './components/CourseCalendar.vue'
+import CourseEdit from './components/CourseEdit.vue'
+import QuarterEdit from './components/QuarterEdit.vue'
+
+export default defineComponent({
+  data: () => ({
+    panes: [
+      {
+        component: 'QuarterEdit',
+        name: '学期',
+      },
+      {
+        component: 'CourseEdit',
+        name: '课程',
+      },
+    ],
+
+    selected: 0,
+  }),
+
+  components: {
+    CourseCalendar,
+    CourseEdit,
+    QuarterEdit,
+  },
+})
+</script>
 
 <style>
 html,
@@ -48,5 +84,33 @@ body,
 
 .pane {
   overflow-y: auto;
+}
+
+.switch-pane {
+  position: sticky;
+  top: 0;
+}
+
+.pane-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.switch-pane {
+  display: flex;
+}
+
+.switch {
+  flex: auto;
+  border: none;
+  padding: 5px 0;
+  margin-bottom: 10px;
+  background-color: rgb(235, 235, 235);
+  font-size: 14px;
+}
+
+.selected {
+  background-color: lightgrey;
+  font-weight: bold;
 }
 </style>

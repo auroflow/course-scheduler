@@ -19,7 +19,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { useScheduleStore } from '../stores/schedule'
-import { Course, Section } from '../types'
+import { CourseOnEdit, SectionOnEdit } from '../types'
 
 export default defineComponent({
   setup() {
@@ -29,11 +29,11 @@ export default defineComponent({
 
   props: {
     course: {
-      type: Object as PropType<Course>,
+      type: Object as PropType<CourseOnEdit>,
       required: true,
     },
     section: {
-      type: Object as PropType<Section>,
+      type: Object as PropType<SectionOnEdit>,
       required: true,
     },
   },

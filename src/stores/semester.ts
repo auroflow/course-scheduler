@@ -6,14 +6,32 @@ export const useSemesterStore = defineStore('semester', {
     quarters: [
       {
         name: '春学期',
-        start: new Date(2022, 2, 21),
-        end: new Date(2022, 4, 17),
+        start: '2022-02-21',
+        end: '2022-04-17',
       },
       {
         name: '夏学期',
-        start: new Date(2022, 4, 18),
-        end: new Date(2022, 6, 12),
+        start: '2022-04-18',
+        end: '2022-06-12',
       },
     ] as Quarter[],
   }),
+
+  actions: {
+    getNewQuarter() {
+      return {
+        name: '',
+        start: new Date().toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0],
+      }
+    },
+
+    addQuarter() {
+      this.quarters.push(this.getNewQuarter())
+    },
+
+    deleteQuarter(quarter: Quarter) {
+      this.quarters = this.quarters.filter((q) => q !== quarter)
+    },
+  },
 })

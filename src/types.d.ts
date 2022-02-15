@@ -1,12 +1,12 @@
 export interface Timeslot {
-  startTime: number[]
-  endTime: number[]
+  startTime: string
+  endTime: string
 }
 
 export interface Quarter {
   name: string
-  start: Date
-  end: Date
+  start: string
+  end: string
 }
 
 export interface Section {

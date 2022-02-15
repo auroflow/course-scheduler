@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { Course, CourseOnEdit, Section, SectionOnEdit } from '../types'
+import { useSemesterStore } from './semester'
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
@@ -36,8 +37,8 @@ export const useScheduleStore = defineStore('schedule', {
       {
         title: '乒乓球(初级班)',
         instructor: '朱国华',
-        quarter_start: 0,
-        quarter_end: 1,
+        quarterStart: 0,
+        quarterEnd: 1,
         sections: [
           {
             weekday: 2,
@@ -57,11 +58,12 @@ export const useScheduleStore = defineStore('schedule', {
 
   actions: {
     getNewCourse(): CourseOnEdit {
+      const semesterStore = useSemesterStore()
       return {
         title: '',
         instructor: '',
-        quarterStart: null,
-        quarterEnd: null,
+        quarterStart: 0,
+        quarterEnd: semesterStore.quarters?.length - 1,
         sections: [],
         exams: [],
       }

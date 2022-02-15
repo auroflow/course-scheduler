@@ -43,7 +43,7 @@ import { useTimetableStore } from '../stores/timetable'
 import { useScheduleStore } from '../stores/schedule'
 import { mapStores } from 'pinia'
 import CourseCalendarEntry from './CourseCalendarEntry.vue'
-import { Course, CourseOnEdit, Section } from '../types'
+import { Course, CourseOnEdit, Section, SectionOnEdit } from '../types'
 
 export default defineComponent({
   data: () => ({
@@ -71,7 +71,7 @@ export default defineComponent({
       }
     },
 
-    select(course: Course, section: Section) {
+    select(course: CourseOnEdit, section: SectionOnEdit) {
       this.scheduleStore.select(course, section)
     },
 
