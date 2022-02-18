@@ -89,15 +89,12 @@ body,
 .switch-pane {
   position: sticky;
   top: 0;
+  display: flex;
 }
 
 .pane-right {
   display: flex;
   flex-direction: column;
-}
-
-.switch-pane {
-  display: flex;
 }
 
 .switch {

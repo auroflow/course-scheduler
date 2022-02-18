@@ -1,4 +1,18 @@
 <template>
+  <div class="quarter-switch">
+    <button class="switch" :disabled="quarterIdx === 0" @click="quarterIdx--">
+      ←
+    </button>
+    <div>{{ quarters[quarterIdx].name }}</div>
+    <button
+      class="switch"
+      :disabled="quarterIdx === quarters.length - 1"
+      @click="quarterIdx++"
+    >
+      →
+    </button>
+  </div>
+
   <div class="calendar">
     <div class="cell cell-top cell-left" :style="getPosition(0, 0, 1)"></div>
     <div
@@ -25,7 +39,8 @@
         @click="removeSelect"
       ></div>
     </template>
-    <template v-for="(course, cidx) in courses" :key="cidx">
+
+    <template v-for="(course, cidx) in coursesInCurrentQuarter" :key="cidx">
       <CourseCalendarEntry
         v-for="(section, sidx) in course.sections"
         :key="sidx"
@@ -44,14 +59,16 @@ import { useScheduleStore } from '../stores/schedule'
 import { mapStores } from 'pinia'
 import CourseCalendarEntry from './CourseCalendarEntry.vue'
 import { Course, CourseOnEdit, Section, SectionOnEdit } from '../types'
+import { useSemesterStore } from '../stores/semester'
 
 export default defineComponent({
   data: () => ({
+    quarterIdx: 0,
     weekdays: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
   }),
 
   computed: {
-    ...mapStores(useTimetableStore, useScheduleStore),
+    ...mapStores(useTimetableStore, useScheduleStore, useSemesterStore),
 
     numSection() {
       return this.timetableStore.timeslots.length
@@ -59,6 +76,20 @@ export default defineComponent({
 
     courses(): CourseOnEdit[] {
       return this.scheduleStore.courses
+    },
+
+    quarters() {
+      return this.semesterStore.quarters
+    },
+
+    coursesInCurrentQuarter() {
+      return this.courses.filter(
+        (course) =>
+          course.quarterStart !== null &&
+          course.quarterEnd !== null &&
+          course.quarterStart <= this.quarterIdx &&
+          this.quarterIdx <= course.quarterEnd
+      )
     },
   },
 
@@ -85,11 +116,24 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.quarter-switch {
+  display: flex;
+  font-size: 14px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+}
+
+.switch {
+  margin: 0 10px;
+}
+
 .calendar {
   display: grid;
   grid-template-columns: 25px repeat(7, 1fr);
   grid-template-rows: 20px;
-  height: 100%;
+  height: calc(100% - 25px);
   box-sizing: border-box;
 }
 

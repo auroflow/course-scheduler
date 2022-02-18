@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { Quarter } from '../types'
+import { Quarter, Semester } from '../types'
 
 export const useSemesterStore = defineStore('semester', {
   state: () => ({
@@ -14,7 +14,7 @@ export const useSemesterStore = defineStore('semester', {
         start: '2022-04-18',
         end: '2022-06-12',
       },
-    ] as Quarter[],
+    ] as Semester,
   }),
 
   actions: {

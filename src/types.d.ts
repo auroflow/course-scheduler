@@ -54,3 +54,7 @@ export interface CourseOnEdit {
   sections: SectionOnEdit[]
   exams: ExamOnEdit[]
 }
+
+export type Semester = Quarter[]
+export type Timetable = Timeslot[]
+export type Schedule = Course[]

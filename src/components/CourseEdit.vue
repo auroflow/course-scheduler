@@ -81,7 +81,11 @@
     </template>
 
     <!-- buttons -->
-    <button v-if="!course" class="btn" @click="addCourse">添加新课程</button>
+    <template v-if="!course">
+      <button class="btn" @click="addCourse">添加新课程</button>
+      <button class="btn" @click="generateSchedule">生成课表</button>
+    </template>
+
     <template v-else>
       <button class="btn" @click="addSection">添加课时</button>
       <button class="btn float-right" @click="deleteCourse">删除课程</button>
@@ -91,10 +95,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { SectionOnEdit } from '../types'
+import { Schedule, SectionOnEdit } from '../types'
 import { useScheduleStore } from '../stores/schedule'
 import { mapStores, mapState } from 'pinia'
 import { useSemesterStore } from '../stores/semester'
+import { generateCalendar } from '../js/converter'
+import { useTimetableStore } from '../stores/timetable'
 
 export default defineComponent({
   data() {
@@ -136,8 +142,10 @@ export default defineComponent({
     ...mapStores(useScheduleStore),
     ...mapState(useScheduleStore, {
       course: 'selectedCourse',
+      courses: 'courses',
     }),
     ...mapState(useSemesterStore, ['quarters']),
+    ...mapState(useTimetableStore, ['timeslots']),
   },
 
   methods: {
@@ -165,6 +173,10 @@ export default defineComponent({
 
     deleteCourse() {
       this.scheduleStore.deleteSelectedCourse()
+    },
+
+    generateSchedule() {
+      generateCalendar(this.quarters, this.timeslots, this.courses as Schedule)
     },
   },
 })
