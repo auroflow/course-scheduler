@@ -76,5 +76,20 @@ export const useTimetableStore = defineStore('timetable', {
         a.startTime < b.startTime ? -1 : a.startTime === b.startTime ? 0 : 1
       )
     },
+
+    save() {
+      localStorage.setItem('timetable', JSON.stringify(this.timeslots))
+    },
+
+    load() {
+      const item = localStorage.getItem('timetable')
+      if (item) {
+        this.timeslots = JSON.parse(item)
+      }
+    },
+
+    clear() {
+      this.$reset()
+    },
   },
 })

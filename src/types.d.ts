@@ -27,14 +27,8 @@ export interface SectionOnEdit {
 
 export interface Exam {
   location: string
-  start: Date
-  end: Date
-}
-
-export interface ExamOnEdit {
-  location: string
-  start: Date | null
-  end: Date | null
+  start: string
+  end: string
 }
 
 export interface Course {
@@ -52,7 +46,7 @@ export interface CourseOnEdit {
   quarterStart: number | null // 起始短学期，从0计数
   quarterEnd: number | null // 终止短学期，从0计数
   sections: SectionOnEdit[]
-  exams: ExamOnEdit[]
+  exams: Exam[]
 }
 
 export type Semester = Quarter[]

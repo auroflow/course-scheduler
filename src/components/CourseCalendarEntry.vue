@@ -64,6 +64,7 @@ export default defineComponent({
   background-color: rgb(197, 241, 255);
   color: royalblue;
   z-index: 1;
+  grid-row: 0;
 }
 
 .selected {

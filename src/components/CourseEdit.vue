@@ -35,6 +35,8 @@
           </div>
         </div>
       </div>
+
+      <!-- 课时 -->
       <details
         v-for="(section, index) in course.sections"
         :key="index"
@@ -78,28 +80,54 @@
           </div>
         </div>
       </details>
-    </template>
 
-    <!-- buttons -->
-    <template v-if="!course">
-      <button class="btn" @click="addCourse">添加新课程</button>
-      <button class="btn" @click="generateSchedule">生成课表</button>
-    </template>
+      <!-- 考试 -->
+      <details
+        v-for="(exam, index) in course.exams"
+        :key="index"
+        class="section-box"
+        open
+      >
+        <summary>
+          考试 {{ index + 1 }}
+          <button @click="deleteExam(exam)" class="delete-btn">删除</button>
+        </summary>
+        <div class="row">
+          <label class="col-label">时间</label>
+          <div class="col">
+            <input type="datetime-local" v-model="exam.start" />
+            <label class="text-in-form">-</label>
+            <input type="datetime-local" v-model="exam.end" />
+          </div>
+        </div>
+        <div class="row">
+          <label class="col-label">地点</label>
+          <div class="col">
+            <input v-model="exam.location" />
+          </div>
+        </div>
+      </details>
 
-    <template v-else>
+      <!-- buttons -->
       <button class="btn" @click="addSection">添加课时</button>
+      <button class="btn" @click="addExam">添加考试</button>
       <button class="btn float-right" @click="deleteCourse">删除课程</button>
+    </template>
+
+    <!-- No course selected -->
+    <template v-else>
+      <div class="row">左侧课表中选择课程</div>
+      <button class="btn" @click="addCourse">添加新课程</button>
     </template>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { Schedule, SectionOnEdit } from '../types'
+import { Exam, Schedule, SectionOnEdit } from '../types'
 import { useScheduleStore } from '../stores/schedule'
 import { mapStores, mapState } from 'pinia'
 import { useSemesterStore } from '../stores/semester'
-import { generateCalendar } from '../js/converter'
 import { useTimetableStore } from '../stores/timetable'
 
 export default defineComponent({
@@ -163,6 +191,10 @@ export default defineComponent({
       })
     },
 
+    addExam() {
+      this.scheduleStore.addExamToSelectedCourse()
+    },
+
     deleteSection(section: SectionOnEdit) {
       this.scheduleStore.deleteSectionFromSelectedCourse(section)
     },
@@ -175,8 +207,8 @@ export default defineComponent({
       this.scheduleStore.deleteSelectedCourse()
     },
 
-    generateSchedule() {
-      generateCalendar(this.quarters, this.timeslots, this.courses as Schedule)
+    deleteExam(exam: Exam) {
+      this.scheduleStore.deleteExamFromSelectedCourse(exam)
     },
   },
 })

@@ -1,5 +1,5 @@
 <template>
-  <div id="navbar">编辑课表</div>
+  <the-navbar @my-reset="reset" @clear="clear"></the-navbar>
   <div id="main-container">
     <div class="pane" id="pane-left">
       <CourseCalendar />
@@ -23,13 +23,37 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from 'vue'
+import TheNavbar from './components/TheNavbar.vue'
 import CourseCalendar from './components/CourseCalendar.vue'
 import CourseEdit from './components/CourseEdit.vue'
 import QuarterEdit from './components/QuarterEdit.vue'
+import { useScheduleStore } from './stores/schedule'
+import { useSemesterStore } from './stores/semester'
+import { useTimetableStore } from './stores/timetable'
 
 export default defineComponent({
+  setup() {
+    let scheduleStore = useScheduleStore()
+    let semesterStore = useSemesterStore()
+    let timetableStore = useTimetableStore()
+
+    return {
+      stores: [scheduleStore, semesterStore, timetableStore],
+    }
+  },
+
+  mounted() {
+    window.onload = (e) => {
+      this.load()
+    }
+
+    window.onbeforeunload = (e) => {
+      this.save()
+    }
+  },
+
   data: () => ({
     panes: [
       {
@@ -46,9 +70,40 @@ export default defineComponent({
   }),
 
   components: {
+    TheNavbar,
     CourseCalendar,
     CourseEdit,
     QuarterEdit,
+  },
+
+  methods: {
+    reset() {
+      if (window.confirm('确定还原样例内容？')) {
+        for (let store of this.stores) {
+          store.$reset()
+        }
+      }
+    },
+
+    clear() {
+      if (window.confirm('确定清空所有内容？')) {
+        for (let store of this.stores) {
+          store.clear()
+        }
+      }
+    },
+
+    save() {
+      for (let store of this.stores) {
+        store.save()
+      }
+    },
+
+    load() {
+      for (let store of this.stores) {
+        store.load()
+      }
+    },
   },
 })
 </script>
@@ -60,6 +115,10 @@ body,
   height: 100%;
   margin: 0;
 }
+
+button:hover {
+  cursor: pointer;
+}
 </style>
 
 <style scoped>
@@ -70,16 +129,6 @@ body,
   box-sizing: border-box;
   grid-template-columns: minmax(600px, 3fr) minmax(400px, 2fr);
   column-gap: 10px;
-}
-
-#navbar {
-  position: relative;
-  width: 100%;
-  padding: 13px;
-  font-size: 20px;
-  background-color: gainsboro;
-  box-sizing: border-box;
-  margin-bottom: 10px;
 }
 
 .pane {

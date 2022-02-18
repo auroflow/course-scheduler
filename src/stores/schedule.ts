@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { Course, CourseOnEdit, Section, SectionOnEdit } from '../types'
+import { Course, CourseOnEdit, Exam, Section, SectionOnEdit } from '../types'
 import { useSemesterStore } from './semester'
 
 export const useScheduleStore = defineStore('schedule', {
@@ -11,27 +11,11 @@ export const useScheduleStore = defineStore('schedule', {
         quarterStart: 0,
         quarterEnd: 1,
         sections: [
-          {
-            weekday: 1,
-            start: 6,
-            end: 8,
-            location: '曹西-103',
-            note: '',
-          },
-          {
-            weekday: 2,
-            start: 3,
-            end: 4,
-            location: '曹西-503',
-            note: '',
-          },
+          { weekday: 1, start: 6, end: 8, location: '曹西-103', note: '' },
+          { weekday: 2, start: 3, end: 4, location: '曹西-503', note: '' },
         ],
         exams: [
-          {
-            start: new Date(2022, 6, 21, 8, 0),
-            end: new Date(2022, 6, 21, 10, 0),
-            location: '待定',
-          },
+          { start: '2022-06-21T08:00', end: '2022-06-21T10:00', location: '' },
         ],
       },
       {
@@ -49,6 +33,44 @@ export const useScheduleStore = defineStore('schedule', {
           },
         ],
         exams: [],
+      },
+      {
+        title: '大规模信息系统构建技术导论',
+        instructor: '鲁伟明',
+        quarterStart: 0,
+        quarterEnd: 0,
+        sections: [
+          { weekday: 1, start: 3, end: 4, location: '曹西-104', note: '' },
+          { weekday: 4, start: 3, end: 4, location: '曹西-104', note: '' },
+        ],
+        exams: [],
+      },
+      {
+        title: '网络安全原理与实践',
+        instructor: '卜凯',
+        quarterStart: 0,
+        quarterEnd: 0,
+        sections: [
+          { weekday: 1, start: 9, end: 10, location: '曹西-103', note: '' },
+          { weekday: 2, start: 7, end: 8, location: '曹西-503', note: '' },
+          { weekday: 2, start: 9, end: 10, location: '曹西-103', note: '' },
+        ],
+        exams: [
+          { start: '2022-04-16T08:00', end: '2022-04-16T10:00', location: '' },
+        ],
+      },
+      {
+        title: '网络与通信安全',
+        instructor: '谢磊',
+        quarterStart: 1,
+        quarterEnd: 1,
+        sections: [
+          { weekday: 1, start: 1, end: 2, location: '教7-104', note: '' },
+          { weekday: 3, start: 1, end: 2, location: '教7-104', note: '' },
+        ],
+        exams: [
+          { start: '2022-06-13T14:00', end: '2022-06-13T16:00', location: '' },
+        ],
       },
     ] as CourseOnEdit[],
 
@@ -79,10 +101,22 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
+    getNewExam(): Exam {
+      return {
+        start: '',
+        end: '',
+        location: '',
+      }
+    },
+
     addCourse() {
       const newCourse = this.getNewCourse()
       this.courses.push(newCourse)
       this.select(newCourse, null)
+    },
+
+    addExamToSelectedCourse() {
+      this.selectedCourse?.exams.push(this.getNewExam())
     },
 
     deleteSectionFromSelectedCourse(section: SectionOnEdit) {
@@ -93,6 +127,14 @@ export const useScheduleStore = defineStore('schedule', {
         if (this.selectedSection === section) {
           this.selectedSection = null
         }
+      }
+    },
+
+    deleteExamFromSelectedCourse(exam: Exam) {
+      if (this.selectedCourse) {
+        this.selectedCourse.exams = this.selectedCourse.exams.filter(
+          (e) => e !== exam
+        )
       }
     },
 
@@ -123,6 +165,21 @@ export const useScheduleStore = defineStore('schedule', {
 
       this.selectedCourse = course
       this.selectedSection = section
+    },
+
+    save() {
+      localStorage.setItem('schedule', JSON.stringify(this.courses))
+    },
+
+    load() {
+      const item = localStorage.getItem('schedule')
+      if (item) {
+        this.courses = JSON.parse(item)
+      }
+    },
+
+    clear() {
+      this.courses = []
     },
   },
 })

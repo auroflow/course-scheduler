@@ -17,6 +17,7 @@ export function generateCalendar(
       'day'
     )
 
+    // Add sections
     for (let section of course.sections) {
       // 得到课时第一天与学期第一天的差值
       let delta = section.weekday - firstDay.weekday
@@ -36,9 +37,15 @@ export function generateCalendar(
         minute: parseInt(endTime[1]),
       })
 
+      let description = ''
+      if (section.note) {
+        description += section.note += '\n\n'
+      }
+      description += '教师：' + course.instructor
+
       cal.addEvent(
         course.title,
-        course.instructor,
+        description,
         section.location,
         start.toISO(),
         end.toISO(),
@@ -46,6 +53,18 @@ export function generateCalendar(
           freq: 'WEEKLY',
           until: lastDay.toISO(),
         }
+      )
+    }
+
+    // Add exams
+    for (let exam of course.exams) {
+      cal.addEvent(
+        '【考试】' + course.title,
+        course.instructor,
+        exam.location,
+        exam.start,
+        exam.end,
+        null
       )
     }
   }

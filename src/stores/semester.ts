@@ -33,5 +33,20 @@ export const useSemesterStore = defineStore('semester', {
     deleteQuarter(quarter: Quarter) {
       this.quarters = this.quarters.filter((q) => q !== quarter)
     },
+
+    save() {
+      localStorage.setItem('semester', JSON.stringify(this.quarters))
+    },
+
+    load() {
+      const item = localStorage.getItem('semester')
+      if (item) {
+        this.quarters = JSON.parse(item)
+      }
+    },
+
+    clear() {
+      this.$reset()
+    },
   },
 })

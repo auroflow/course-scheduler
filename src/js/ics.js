@@ -179,7 +179,7 @@ export const ics = function (uidDomain, prodId) {
         if (rrule.rrule) {
           rruleString = rrule.rrule
         } else {
-          rruleString = 'rrule:FREQ=' + rrule.freq
+          rruleString = 'RRULE:FREQ=' + rrule.freq
 
           if (rrule.until) {
             var uDate = new Date(Date.parse(rrule.until)).toISOString()
