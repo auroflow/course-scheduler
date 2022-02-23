@@ -182,13 +182,7 @@ export default defineComponent({
     },
 
     addSection() {
-      this.course?.sections.push({
-        weekday: null,
-        start: null,
-        end: null,
-        location: '',
-        note: '',
-      })
+      this.scheduleStore.addSectionToSelectedCourse()
     },
 
     addExam() {

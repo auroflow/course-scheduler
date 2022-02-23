@@ -1,19 +1,27 @@
 <template>
   <div class="quarter-switch">
-    <button class="switch" :disabled="quarterIdx === 0" @click="quarterIdx--">
+    <button
+      class="switch"
+      :disabled="quarterIdx === 0"
+      @click="selectQuarter(quarterIdx - 1)"
+    >
       ←
     </button>
     <div>{{ quarters[quarterIdx].name }}</div>
     <button
       class="switch"
       :disabled="quarterIdx === quarters.length - 1"
-      @click="quarterIdx++"
+      @click="selectQuarter(quarterIdx + 1)"
     >
       →
     </button>
   </div>
 
-  <div class="calendar">
+  <div
+    id="calendar"
+    v-if="quarterIdx >= 0 && quarterIdx < quarters.length"
+    class="calendar"
+  >
     <div class="cell cell-top cell-left" :style="getPosition(0, 0, 1)"></div>
     <div
       v-for="(weekday, index) in weekdays"
@@ -31,12 +39,10 @@
         v-for="weekday in 7"
         :key="weekday * section"
         class="cell"
-        :class="{
-          'cell-right': weekday === 7,
-          'cell-bottom': section === numSection,
-        }"
         :style="getPosition(weekday, section, 1)"
         @click="removeSelect"
+        @contextmenu.prevent.stop="invokeMenu($event, weekday, section)"
+        @dragover.prevent
       ></div>
     </template>
 
@@ -46,10 +52,19 @@
         :key="sidx"
         :course="course"
         :section="section"
-        @click="select(course, section)"
+        @click="selectCourseAndSection(course, section)"
       />
     </template>
   </div>
+
+  <CourseCalendarCreate
+    :show="menu.show"
+    :hasSelected="!!selectedSection"
+    :top="menu.top"
+    :left="menu.left"
+    @add-section-for-new="addCourse(menu.weekday!, menu.section!)"
+    @add-section-for-this="addSectionToSelectedCourse(menu.weekday!, menu.section!)"
+  />
 </template>
 
 <script lang="ts">
@@ -58,17 +73,46 @@ import { useTimetableStore } from '../stores/timetable'
 import { useScheduleStore } from '../stores/schedule'
 import { mapStores } from 'pinia'
 import CourseCalendarEntry from './CourseCalendarEntry.vue'
-import { Course, CourseOnEdit, Section, SectionOnEdit } from '../types'
+import CourseCalendarCreate from './CourseCalendarCreate.vue'
+import { CourseOnEdit, SectionOnEdit } from '../types'
 import { useSemesterStore } from '../stores/semester'
 
 export default defineComponent({
   data: () => ({
-    quarterIdx: 0,
     weekdays: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+    log: console.log,
+    menu: {
+      show: false,
+      weekday: null as number | null,
+      section: null as number | null,
+      top: 0,
+      left: 0,
+    },
+    newCourseCount: 0,
   }),
+
+  mounted() {
+    document.addEventListener('click', () => {
+      this.menu.show = false
+    })
+  },
+
+  emits: ['section-selected'],
 
   computed: {
     ...mapStores(useTimetableStore, useScheduleStore, useSemesterStore),
+
+    selectedCourse() {
+      return this.scheduleStore.selectedCourse
+    },
+
+    selectedSection() {
+      return this.scheduleStore.selectedSection
+    },
+
+    quarterIdx() {
+      return this.semesterStore.selected
+    },
 
     numSection() {
       return this.timetableStore.timeslots.length
@@ -80,6 +124,10 @@ export default defineComponent({
 
     quarters() {
       return this.semesterStore.quarters
+    },
+
+    timeslots() {
+      return this.timetableStore.timeslots
     },
 
     coursesInCurrentQuarter() {
@@ -94,24 +142,76 @@ export default defineComponent({
   },
 
   methods: {
+    selectQuarter(newIndex: number) {
+      this.semesterStore.selected = newIndex
+    },
+
     getPosition(weekday: number, timeslot: number, duration: number) {
       return {
         gridArea: `${timeslot + 1} / ${
           weekday + 1
         } / span ${duration} / span 1`,
+        backgroundColor: timeslot % 2 ? '#fafafa' : '#f0f0f0',
       }
     },
 
-    select(course: CourseOnEdit, section: SectionOnEdit) {
+    selectCourseAndSection(course: CourseOnEdit, section: SectionOnEdit) {
       this.scheduleStore.select(course, section)
+      this.$emit('section-selected')
     },
 
     removeSelect() {
+      console.log('removed')
+
       this.scheduleStore.select(null, null)
+    },
+
+    invokeMenu(e: MouseEvent, weekday: number, section: number) {
+      this.menu.top = e.clientY
+      this.menu.left = e.clientX
+      this.menu.weekday = weekday
+      this.menu.section = section
+      this.menu.show = true
+    },
+
+    addCourse(weekday: number, section: number) {
+      let newCourse = {
+        quarterStart: this.quarterIdx,
+        quarterEnd: this.quarters.length - 1,
+        title: '新课程 #' + ++this.newCourseCount,
+        instructor: '',
+        sections: [
+          {
+            weekday: weekday,
+            start: section,
+            end: section,
+            location: '',
+            note: '',
+          },
+        ],
+        exams: [],
+      }
+
+      this.courses.push(newCourse)
+      this.selectCourseAndSection(newCourse, newCourse.sections[0])
+    },
+
+    // invoked only when this.selectedCourse !== null.
+    addSectionToSelectedCourse(weekday: number, section: number) {
+      let newSection = {
+        weekday: weekday,
+        start: section,
+        end: section,
+        location: '',
+        note: '',
+      }
+
+      this.selectedCourse!.sections.push(newSection)
+      this.selectCourseAndSection(this.selectedCourse!, newSection)
     },
   },
 
-  components: { CourseCalendarEntry },
+  components: { CourseCalendarEntry, CourseCalendarCreate },
 })
 </script>
 
@@ -132,32 +232,36 @@ export default defineComponent({
 .calendar {
   display: grid;
   grid-template-columns: 25px repeat(7, 1fr);
-  grid-template-rows: 20px;
-  height: calc(100% - 25px);
+  grid-template-rows: 25px repeat(v-bind('timeslots.length'), 1fr);
+  height: calc(100% - 30px);
   box-sizing: border-box;
+  overflow-y: hidden;
 }
 
 .cell {
-  border-right: 1px solid grey;
-  border-bottom: 1px solid grey;
+  border: 1px solid white;
   font-size: 15px;
   text-align: center;
 }
 
 /* 标题行 */
 .cell-top {
-  border-top: 1px solid black;
-  border-right: 1px solid black !important;
-  border-bottom: 1px solid black !important;
-  height: 20px;
+  height: 25px;
+  box-sizing: border-box;
+  color: darkslategrey;
+  text-align: center;
 }
 
 /* 标题列 */
 .cell-left {
-  border-left: 1px solid black;
-  border-right: 1px solid black !important;
-  border-bottom: 1px solid black !important;
-  width: 24px;
+  width: 25px;
+  box-sizing: border-box;
+  min-height: 0;
+  color: darkslategrey;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0 !important;
 }
 
 .cell-right {
@@ -167,5 +271,4 @@ export default defineComponent({
 .cell-bottom {
   border-bottom: 1px solid black !important;
 }
-/* 文字 */
 </style>

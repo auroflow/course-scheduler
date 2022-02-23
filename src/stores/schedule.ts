@@ -76,6 +76,14 @@ export const useScheduleStore = defineStore('schedule', {
 
     selectedCourse: null as CourseOnEdit | null,
     selectedSection: null as SectionOnEdit | null,
+
+    // drag and drop of calendar elements
+    dragType: null as string | null,
+    startClientX: null as number | null,
+    startClientY: null as number | null,
+    startWeekday: null as number | null,
+    startSectionStart: null as number | null,
+    startSectionEnd: null as number | null,
   }),
 
   actions: {
@@ -91,11 +99,15 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    getNewSection(): SectionOnEdit {
+    getNewSection(
+      weekday: null | number = null,
+      start: null | number = null,
+      end: null | number = null
+    ): SectionOnEdit {
       return {
-        weekday: null,
-        start: null,
-        end: null,
+        weekday: weekday,
+        start: start,
+        end: end,
         location: '',
         note: '',
       }
@@ -113,6 +125,16 @@ export const useScheduleStore = defineStore('schedule', {
       const newCourse = this.getNewCourse()
       this.courses.push(newCourse)
       this.select(newCourse, null)
+    },
+
+    addSectionToSelectedCourse(
+      weekday: null | number = null,
+      start: null | number = null,
+      end: null | number = null
+    ) {
+      this.selectedCourse?.sections.push(
+        this.getNewSection(weekday, start, end)
+      )
     },
 
     addExamToSelectedCourse() {
@@ -146,6 +168,8 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
+    // check whether this course is displayed on the calendar, i.e. at least
+    // one section is valid.
     isDisplayed(course: CourseOnEdit) {
       for (const section of course.sections) {
         if (section.start && section.end && section.weekday) {
@@ -156,9 +180,8 @@ export const useScheduleStore = defineStore('schedule', {
     },
 
     select(course: CourseOnEdit | null, section: SectionOnEdit | null) {
-      // Delete the previously selected course if it has no sections,
-      // because we wouldn't be able to find it on the calendar
-
+      // Delete the previously selected course if it has no section displayed,
+      // because there's no point keeping it
       if (this.selectedCourse && !this.isDisplayed(this.selectedCourse)) {
         this.deleteSelectedCourse()
       }

@@ -15,9 +15,15 @@ export const useSemesterStore = defineStore('semester', {
         end: '2022-06-12',
       },
     ] as Semester,
+
+    selected: 0,
   }),
 
   actions: {
+    selectQuarter(index: number) {
+      this.selected = index
+    },
+
     getNewQuarter() {
       return {
         name: '',
@@ -31,6 +37,8 @@ export const useSemesterStore = defineStore('semester', {
     },
 
     deleteQuarter(quarter: Quarter) {
+      if (this.selected === this.quarters.length - 1 && this.selected > 0)
+        this.selected--
       this.quarters = this.quarters.filter((q) => q !== quarter)
     },
 

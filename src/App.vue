@@ -1,23 +1,25 @@
 <template>
-  <the-navbar @my-reset="reset" @clear="clear"></the-navbar>
-  <div id="main-container">
-    <div class="pane" id="pane-left">
-      <CourseCalendar />
-    </div>
-    <div class="pane" id="pane-right">
-      <div class="switch-pane">
-        <button
-          v-for="(pane, pidx) in panes"
-          :key="pane.name"
-          class="switch"
-          :class="{ selected: selected === pidx }"
-          @click="selected = pidx"
-        >
-          {{ pane.name }}
-        </button>
+  <div id="root">
+    <the-navbar @my-reset="reset" @clear="clear"></the-navbar>
+    <div id="main-container">
+      <div class="pane" id="pane-left">
+        <CourseCalendar @section-selected="selected = 1" />
       </div>
-      <div class="form-pane">
-        <component :is="panes[selected].component"></component>
+      <div class="pane" id="pane-right">
+        <div class="switch-pane">
+          <button
+            v-for="(pane, pidx) in panes"
+            :key="pane.name"
+            class="switch"
+            :class="{ selected: selected === pidx }"
+            @click="selected = pidx"
+          >
+            {{ pane.name }}
+          </button>
+        </div>
+        <div class="form-pane">
+          <component :is="panes[selected].component"></component>
+        </div>
       </div>
     </div>
   </div>
@@ -29,6 +31,7 @@ import TheNavbar from './components/TheNavbar.vue'
 import CourseCalendar from './components/CourseCalendar.vue'
 import CourseEdit from './components/CourseEdit.vue'
 import QuarterEdit from './components/QuarterEdit.vue'
+
 import { useScheduleStore } from './stores/schedule'
 import { useSemesterStore } from './stores/semester'
 import { useTimetableStore } from './stores/timetable'
@@ -111,7 +114,8 @@ export default defineComponent({
 <style>
 html,
 body,
-#app {
+#app,
+#root {
   height: 100%;
   margin: 0;
 }
