@@ -1,17 +1,18 @@
 <template>
-  <div id="navbar">
-    编辑课表
-    <div class="spacer"></div>
-    <button @click="$emit('my-reset')">样例课表</button>
-    <button @click="$emit('clear')">清空课表</button>
-    <button @click="generateSchedule">生成日历文件</button>
-  </div>
+  <nav>
+    <ul>
+      <li><h1>课表编辑器</h1></li>
+      <li>校历广场</li>
+      <li>我的课表</li>
+      <li>添加课表</li>
+    </ul>
+  </nav>
 </template>
 
-<script lang="ts">
+<script>
 import { defineComponent } from 'vue'
 import { mapState } from 'pinia'
-import { Schedule } from '../types'
+
 import { generateCalendar } from '../js/converter'
 import { useTimetableStore } from '../stores/timetable'
 import { useSemesterStore } from '../stores/semester'
@@ -26,35 +27,43 @@ export default defineComponent({
 
   methods: {
     generateSchedule() {
-      generateCalendar(this.quarters, this.timeslots, this.courses as Schedule)
+      generateCalendar(this.quarters, this.timeslots, this.courses)
     },
   },
 })
 </script>
 
 <style scoped>
-#navbar {
+nav {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 15px 0;
+  font-size: 1.25em;
+}
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  position: relative;
-  width: 100%;
-  padding: 13px;
-  font-size: 20px;
-  background-color: gainsboro;
-  box-sizing: border-box;
-  margin-bottom: 10px;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
-
-.spacer {
-  flex-grow: 1;
+nav h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 0;
 }
-
-button {
-  border: none;
-  background-color: transparent;
-  color: darkslategrey;
+nav ul li:first-child {
+  flex-basis: auto;
+  margin-right: auto;
+  text-align: left;
 }
-
-button:hover {
-  color: darkgrey;
+@media (max-width: 1280px) {
+  nav {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 </style>

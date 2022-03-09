@@ -1,31 +1,13 @@
 <template>
-  <div id="root">
-    <the-navbar @my-reset="reset" @clear="clear"></the-navbar>
+  <div id="root" @click="clearSelect">
+    <TheNavbar></TheNavbar>
     <div id="main-container">
-      <div class="pane" id="pane-left">
-        <CourseCalendar @section-selected="selected = 1" />
-      </div>
-      <div class="pane" id="pane-right">
-        <div class="switch-pane">
-          <button
-            v-for="(pane, pidx) in panes"
-            :key="pane.name"
-            class="switch"
-            :class="{ selected: selected === pidx }"
-            @click="selected = pidx"
-          >
-            {{ pane.name }}
-          </button>
-        </div>
-        <div class="form-pane">
-          <component :is="panes[selected].component"></component>
-        </div>
-      </div>
+      <router-view></router-view>
     </div>
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import { defineComponent } from 'vue'
 import TheNavbar from './components/TheNavbar.vue'
 import CourseCalendar from './components/CourseCalendar.vue'
@@ -34,16 +16,14 @@ import QuarterEdit from './components/QuarterEdit.vue'
 
 import { useScheduleStore } from './stores/schedule'
 import { useSemesterStore } from './stores/semester'
-import { useTimetableStore } from './stores/timetable'
 
 export default defineComponent({
   setup() {
     let scheduleStore = useScheduleStore()
     let semesterStore = useSemesterStore()
-    let timetableStore = useTimetableStore()
 
     return {
-      stores: [scheduleStore, semesterStore, timetableStore],
+      stores: [scheduleStore, semesterStore],
     }
   },
 
@@ -80,6 +60,10 @@ export default defineComponent({
   },
 
   methods: {
+    clearSelect() {
+      this.stores[0].select(null, null) // schedule store
+    },
+
     reset() {
       if (window.confirm('确定还原样例内容？')) {
         for (let store of this.stores) {
@@ -97,6 +81,7 @@ export default defineComponent({
     },
 
     save() {
+      localStorage.setItem('version', '0.2')
       for (let store of this.stores) {
         store.save()
       }
@@ -112,6 +97,19 @@ export default defineComponent({
 </script>
 
 <style>
+html {
+  box-sizing: border-box;
+  font-size: 14px;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+}
+
+@media screen and (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 html,
 body,
 #app,
@@ -120,47 +118,123 @@ body,
   margin: 0;
 }
 
+* {
+  box-sizing: inherit;
+  font-family: 'Noto Sans SC', serif;
+}
+
+.button {
+  display: inline-block;
+  margin: 0;
+  position: relative;
+  border: none;
+  padding: 0.25rem 1rem;
+  background-color: rgb(231, 231, 231);
+}
+
+.button + .button {
+  margin-left: 10px;
+}
+
+.button:active {
+  left: 2px;
+  top: 2px;
+  background-color: rgb(211, 211, 211);
+}
+
 button:hover {
   cursor: pointer;
+}
+
+.buttons {
+  display: flex;
+  flex: row wrap;
+  justify-content: center;
+}
+
+.sr-only {
+  border: 0 !important;
+  clip: rect(1px, 1px, 1px, 1px) !important; /* 1 */
+  -webkit-clip-path: inset(50%) !important;
+  clip-path: inset(50%) !important; /* 2 */
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  width: 1px !important;
+  white-space: nowrap !important; /* 3 */
+}
+
+/* edit navbar */
+
+.edit-nav {
+  display: flex;
+  padding: 0;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+}
+.edit-nav li {
+  position: relative;
+  list-style-type: none;
+  margin: 0;
+  padding: 0 2rem 0 2.5rem;
+  background-color: var(--color-enabled);
+  height: 2rem;
+  display: flex;
+  line-height: 1;
+  align-items: center;
+}
+.edit-nav li:not(:last-child)::after {
+  content: '';
+  display: block;
+  border-style: solid;
+  border-width: 1rem 0 1rem 0.75rem;
+  border-color: transparent transparent transparent var(--color-enabled);
+  position: absolute;
+  left: 100%;
+  z-index: 1;
+}
+.edit-nav li:not(:first-child)::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  border-style: solid;
+  border-width: 1.4rem 0 1.4rem 1.05rem;
+  border-color: transparent transparent transparent white;
+}
+.edit-nav li.disabled {
+  color: grey;
+  background-color: var(--color-disabled);
+}
+.edit-nav li.disabled::after {
+  border-color: transparent transparent transparent var(--color-disabled);
+}
+
+/* form */
+input:not([type='radio']):not([type='checkbox']),
+select {
+  height: 2em;
+  background-color: white;
+  color: black;
+  border: 1px solid grey;
+  border-radius: 4px;
+  font-size: 0.9rem;
 }
 </style>
 
 <style scoped>
 #main-container {
-  padding: 0 20px 10px;
-  display: grid;
-  height: calc(100% - 2 * 13px - 20px - 20px);
-  box-sizing: border-box;
-  grid-template-columns: minmax(600px, 3fr) minmax(400px, 2fr);
-  column-gap: 10px;
+  max-width: 1280px;
+  margin: 0 auto;
+  height: auto;
 }
-
-.pane {
-  overflow-y: auto;
-}
-
-.switch-pane {
-  position: sticky;
-  top: 0;
-  display: flex;
-}
-
-.pane-right {
-  display: flex;
-  flex-direction: column;
-}
-
-.switch {
-  flex: auto;
-  border: none;
-  padding: 5px 0;
-  margin-bottom: 10px;
-  background-color: rgb(235, 235, 235);
-  font-size: 14px;
-}
-
-.selected {
-  background-color: lightgrey;
-  font-weight: bold;
+@media (max-width: 1280px) {
+  #main-container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 </style>

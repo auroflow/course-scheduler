@@ -1,27 +1,21 @@
 <template>
   <div class="quarter-switch">
-    <button
-      class="switch"
-      :disabled="quarterIdx === 0"
-      @click="selectQuarter(quarterIdx - 1)"
-    >
-      ←
+    <button class="switch" :disabled="quarterIdx === 0" @click.stop="selectQuarter(quarterIdx - 1)">
+      <font-awesome-icon icon="left-long" aria-hidden="true" fixed-width />
+      <span class="sr-only">上一学期</span>
     </button>
     <div>{{ quarters[quarterIdx].name }}</div>
     <button
       class="switch"
       :disabled="quarterIdx === quarters.length - 1"
-      @click="selectQuarter(quarterIdx + 1)"
+      @click.stop="selectQuarter(quarterIdx + 1)"
     >
-      →
+      <font-awesome-icon icon="right-long" aria-hidden="true" fixed-width />
+      <span class="sr-only">下一学期</span>
     </button>
   </div>
 
-  <div
-    id="calendar"
-    v-if="quarterIdx >= 0 && quarterIdx < quarters.length"
-    class="calendar"
-  >
+  <div id="calendar" v-if="quarterIdx >= 0 && quarterIdx < quarters.length" class="calendar">
     <div class="cell cell-top cell-left" :style="getPosition(0, 0, 1)"></div>
     <div
       v-for="(weekday, index) in weekdays"
@@ -31,50 +25,49 @@
     >
       <span>{{ weekday }}</span>
     </div>
-    <template v-for="section in numSection" :key="section">
-      <div class="cell cell-left" :style="getPosition(0, section, 1)">
-        {{ section }}
+    <template v-for="session in numSession" :key="session">
+      <div class="cell cell-left" :style="getPosition(0, session, 1)">
+        {{ session }}
       </div>
       <div
         v-for="weekday in 7"
-        :key="weekday * section"
+        :key="weekday * session"
         class="cell"
-        :style="getPosition(weekday, section, 1)"
+        :style="getPosition(weekday, session, 1)"
         @click="removeSelect"
-        @contextmenu.prevent.stop="invokeMenu($event, weekday, section)"
+        @contextmenu.prevent.stop="invokeMenu($event, weekday, session)"
         @dragover.prevent
       ></div>
     </template>
 
     <template v-for="(course, cidx) in coursesInCurrentQuarter" :key="cidx">
       <CourseCalendarEntry
-        v-for="(section, sidx) in course.sections"
+        v-for="(session, sidx) in course.sessions"
         :key="sidx"
         :course="course"
-        :section="section"
-        @click="selectCourseAndSection(course, section)"
+        :session="session"
+        @click.stop="selectCourseAndSession(course, session)"
       />
     </template>
   </div>
 
   <CourseCalendarCreate
     :show="menu.show"
-    :hasSelected="!!selectedSection"
+    :hasSelected="!!selectedSession"
     :top="menu.top"
     :left="menu.left"
-    @add-section-for-new="addCourse(menu.weekday!, menu.section!)"
-    @add-section-for-this="addSectionToSelectedCourse(menu.weekday!, menu.section!)"
+    @add-session-for-new="addCourse(menu.weekday, menu.session)"
+    @add-session-for-this="addSessionToSelectedCourse(menu.weekday, menu.session)"
   />
 </template>
 
-<script lang="ts">
+<script>
 import { defineComponent } from 'vue'
 import { useTimetableStore } from '../stores/timetable'
 import { useScheduleStore } from '../stores/schedule'
 import { mapStores } from 'pinia'
 import CourseCalendarEntry from './CourseCalendarEntry.vue'
 import CourseCalendarCreate from './CourseCalendarCreate.vue'
-import { CourseOnEdit, SectionOnEdit } from '../types'
 import { useSemesterStore } from '../stores/semester'
 
 export default defineComponent({
@@ -83,8 +76,8 @@ export default defineComponent({
     log: console.log,
     menu: {
       show: false,
-      weekday: null as number | null,
-      section: null as number | null,
+      weekday: null,
+      session: null,
       top: 0,
       left: 0,
     },
@@ -97,8 +90,6 @@ export default defineComponent({
     })
   },
 
-  emits: ['section-selected'],
-
   computed: {
     ...mapStores(useTimetableStore, useScheduleStore, useSemesterStore),
 
@@ -106,19 +97,19 @@ export default defineComponent({
       return this.scheduleStore.selectedCourse
     },
 
-    selectedSection() {
-      return this.scheduleStore.selectedSection
+    selectedSession() {
+      return this.scheduleStore.selectedSession
     },
 
     quarterIdx() {
       return this.semesterStore.selected
     },
 
-    numSection() {
+    numSession() {
       return this.timetableStore.timeslots.length
     },
 
-    courses(): CourseOnEdit[] {
+    courses() {
       return this.scheduleStore.courses
     },
 
@@ -131,33 +122,29 @@ export default defineComponent({
     },
 
     coursesInCurrentQuarter() {
-      return this.courses.filter(
-        (course) =>
-          course.quarterStart !== null &&
-          course.quarterEnd !== null &&
-          course.quarterStart <= this.quarterIdx &&
-          this.quarterIdx <= course.quarterEnd
-      )
+      return this.courses.filter((course) => course.quarters.includes(this.quarterIdx))
     },
   },
 
   methods: {
-    selectQuarter(newIndex: number) {
+    selectQuarter(newIndex) {
       this.semesterStore.selected = newIndex
     },
 
-    getPosition(weekday: number, timeslot: number, duration: number) {
+    getPosition(weekday, timeslot, duration) {
       return {
-        gridArea: `${timeslot + 1} / ${
-          weekday + 1
-        } / span ${duration} / span 1`,
+        gridArea: `${timeslot + 1} / ${weekday + 1} / span ${duration} / span 1`,
         backgroundColor: timeslot % 2 ? '#fafafa' : '#f0f0f0',
       }
     },
 
-    selectCourseAndSection(course: CourseOnEdit, section: SectionOnEdit) {
-      this.scheduleStore.select(course, section)
-      this.$emit('section-selected')
+    selectCourseAndSession(course, session) {
+      this.scheduleStore.select(course, session)
+      let cidx = this.scheduleStore.courses.indexOf(course)
+      this.scheduleStore.showCourseBox[cidx] = true
+      this.$nextTick(() => {
+        document.getElementById(`course-${cidx}`).scrollIntoView()
+      })
     },
 
     removeSelect() {
@@ -166,48 +153,44 @@ export default defineComponent({
       this.scheduleStore.select(null, null)
     },
 
-    invokeMenu(e: MouseEvent, weekday: number, section: number) {
+    invokeMenu(e, weekday, session) {
       this.menu.top = e.clientY
       this.menu.left = e.clientX
       this.menu.weekday = weekday
-      this.menu.section = section
+      this.menu.session = session
       this.menu.show = true
     },
 
-    addCourse(weekday: number, section: number) {
-      let newCourse = {
-        quarterStart: this.quarterIdx,
-        quarterEnd: this.quarters.length - 1,
-        title: '新课程 #' + ++this.newCourseCount,
-        instructor: '',
-        sections: [
-          {
-            weekday: weekday,
-            start: section,
-            end: section,
-            location: '',
-            note: '',
-          },
-        ],
-        exams: [],
-      }
+    addCourse(weekday, session) {
+      let newCourse = this.scheduleStore.newCourse()
+      newCourse.title = '新课程 #' + ++this.newCourseCount
+      newCourse.sessions.push({
+        weekday: weekday,
+        start: session,
+        end: session,
+        location: '',
+        note: '',
+        freq: { type: 0 },
+      })
 
-      this.courses.push(newCourse)
-      this.selectCourseAndSection(newCourse, newCourse.sections[0])
+      this.scheduleStore.addCourse(newCourse)
+      let cidx = this.scheduleStore.courses.indexOf(newCourse)
+      document.getElementById(`course-${cidx}`).scrollIntoView()
     },
 
     // invoked only when this.selectedCourse !== null.
-    addSectionToSelectedCourse(weekday: number, section: number) {
-      let newSection = {
+    addSessionToSelectedCourse(weekday, session) {
+      let newSession = {
         weekday: weekday,
-        start: section,
-        end: section,
+        start: session,
+        end: session,
         location: '',
         note: '',
+        freq: { type: 0 },
       }
 
-      this.selectedCourse!.sections.push(newSection)
-      this.selectCourseAndSection(this.selectedCourse!, newSection)
+      this.selectedCourse.sessions.push(newSession)
+      this.selectCourseAndSession(this.selectedCourse, newSession)
     },
   },
 
@@ -216,6 +199,13 @@ export default defineComponent({
 </script>
 
 <style scoped>
+button.switch {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 10px;
+}
+
 .quarter-switch {
   display: flex;
   font-size: 14px;

@@ -5,10 +5,7 @@ import { saveAs } from 'file-saver'
 export const ics = function (uidDomain, prodId) {
   'use strict'
 
-  if (
-    navigator.userAgent.indexOf('MSIE') > -1 &&
-    navigator.userAgent.indexOf('MSIE 10') == -1
-  ) {
+  if (navigator.userAgent.indexOf('MSIE') > -1 && navigator.userAgent.indexOf('MSIE 10') == -1) {
     console.log('Unsupported Browser')
     return
   }
@@ -22,11 +19,7 @@ export const ics = function (uidDomain, prodId) {
 
   var SEPARATOR = navigator.appVersion.indexOf('Win') !== -1 ? '\r\n' : '\n'
   var calendarEvents = []
-  var calendarStart = [
-    'BEGIN:VCALENDAR',
-    'PRODID:' + prodId,
-    'VERSION:2.0',
-  ].join(SEPARATOR)
+  var calendarStart = ['BEGIN:VCALENDAR', 'PRODID:' + prodId, 'VERSION:2.0'].join(SEPARATOR)
   var calendarEnd = SEPARATOR + 'END:VCALENDAR'
   var BYDAY_VALUES = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA']
 
@@ -44,9 +37,7 @@ export const ics = function (uidDomain, prodId) {
      * @return {string} Calendar in iCalendar format
      */
     calendar: function () {
-      return (
-        calendarStart + SEPARATOR + calendarEvents.join(SEPARATOR) + calendarEnd
-      )
+      return calendarStart + SEPARATOR + calendarEvents.join(SEPARATOR) + calendarEnd
     },
 
     /**
@@ -100,9 +91,7 @@ export const ics = function (uidDomain, prodId) {
           }
 
           if (typeof rrule.byday !== 'undefined') {
-            if (
-              Object.prototype.toString.call(rrule.byday) !== '[object Array]'
-            ) {
+            if (Object.prototype.toString.call(rrule.byday) !== '[object Array]') {
               throw "Recurrence rrule 'byday' must be an array"
             }
 
@@ -130,9 +119,7 @@ export const ics = function (uidDomain, prodId) {
       var now_date = new Date()
 
       var start_year = ('0000' + start_date.getFullYear().toString()).slice(-4)
-      var start_month = ('00' + (start_date.getMonth() + 1).toString()).slice(
-        -2
-      )
+      var start_month = ('00' + (start_date.getMonth() + 1).toString()).slice(-2)
       var start_day = ('00' + start_date.getDate().toString()).slice(-2)
       var start_hours = ('00' + start_date.getHours().toString()).slice(-2)
       var start_minutes = ('00' + start_date.getMinutes().toString()).slice(-2)
@@ -156,12 +143,7 @@ export const ics = function (uidDomain, prodId) {
       var start_time = ''
       var end_time = ''
       if (
-        start_hours +
-          start_minutes +
-          start_seconds +
-          end_hours +
-          end_minutes +
-          end_seconds !=
+        start_hours + start_minutes + start_seconds + end_hours + end_minutes + end_seconds !=
         0
       ) {
         start_time = 'T' + start_hours + start_minutes + start_seconds
@@ -184,9 +166,7 @@ export const ics = function (uidDomain, prodId) {
           if (rrule.until) {
             var uDate = new Date(Date.parse(rrule.until)).toISOString()
             rruleString +=
-              ';UNTIL=' +
-              uDate.substring(0, uDate.length - 13).replace(/[-]/g, '') +
-              '000000Z'
+              ';UNTIL=' + uDate.substring(0, uDate.length - 13).replace(/[-]/g, '') + '000000Z'
           }
 
           if (rrule.interval) {
@@ -241,20 +221,19 @@ export const ics = function (uidDomain, prodId) {
 
       ext = typeof ext !== 'undefined' ? ext : '.ics'
       filename = typeof filename !== 'undefined' ? filename : 'calendar'
-      var calendar =
-        calendarStart + SEPARATOR + calendarEvents.join(SEPARATOR) + calendarEnd
+      let calendar = calendarStart + SEPARATOR + calendarEvents.join(SEPARATOR) + calendarEnd
 
-      var blob
-      if (navigator.userAgent.indexOf('MSIE 10') === -1) {
-        // chrome or firefox
-        blob = new Blob([calendar])
-      } else {
-        // ie
-        var bb = new BlobBuilder()
-        bb.append(calendar)
-        blob = bb.getBlob('text/x-vCalendar;charset=' + document.characterSet)
-      }
-      saveAs(blob, filename + ext)
+      let blob = new Blob([calendar])
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+      // the filename you want
+      a.download = 'calendar.ics'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+
       return calendar
     },
 
@@ -266,9 +245,7 @@ export const ics = function (uidDomain, prodId) {
         return false
       }
 
-      var calendar =
-        calendarStart + SEPARATOR + calendarEvents.join(SEPARATOR) + calendarEnd
-
+      var calendar = calendarStart + SEPARATOR + calendarEvents.join(SEPARATOR) + calendarEnd
       return calendar
     },
   }

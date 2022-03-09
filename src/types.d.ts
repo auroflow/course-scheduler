@@ -9,24 +9,38 @@ export interface Quarter {
   end: string
 }
 
-export interface Section {
+interface RegularFrequency {
+  type: 0 | 1 | 2
+}
+
+interface ManualFrequency {
+  type: 3
+  detail: string[]
+}
+
+export type Frequency = RegularFrequency | ManualFrequency
+
+export interface Session {
   weekday: number
   start: number
   end: number
   location: string
   note: string
+  freq: Frequency
 }
 
-export interface SectionOnEdit {
+export interface SessionOnEdit {
   weekday: number | null
   start: number | null
   end: number | null
   location: string
   note: string
+  freq: Frequency
 }
 
 export interface Exam {
   location: string
+  date: string
   start: string
   end: string
 }
@@ -34,18 +48,16 @@ export interface Exam {
 export interface Course {
   title: string
   instructor: string
-  quarterStart: number // 起始短学期，从0计数
-  quarterEnd: number // 终止短学期，从0计数
-  sections: Section[]
+  quarters: number[]
+  sessions: Session[]
   exams: Exam[]
 }
 
 export interface CourseOnEdit {
   title: string
   instructor: string
-  quarterStart: number | null // 起始短学期，从0计数
-  quarterEnd: number | null // 终止短学期，从0计数
-  sections: SectionOnEdit[]
+  quarters: number[]
+  sessions: SessionOnEdit[]
   exams: Exam[]
 }
 

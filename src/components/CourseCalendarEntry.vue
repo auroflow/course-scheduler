@@ -1,10 +1,10 @@
-<!-- To pass course and section to this component, make sure     -->
-<!-- the section is displayable, i.e. section.start, section.end -->
-<!-- and section.weekday are not null.                           -->
+<!-- To pass course and session to this component, make sure     -->
+<!-- the session is displayable, i.e. session.start, session.end -->
+<!-- and session.weekday are not null.                           -->
 <template>
   <div
     v-bind="$attrs"
-    v-if="section.start && section.end && section.weekday"
+    v-if="session.start && session.end && session.weekday"
     class="entry"
     :style="getPosition"
     :class="{ selected: isSelected }"
@@ -16,7 +16,7 @@
   >
     <div class="text">
       <div class="course-title">{{ course.title }}</div>
-      <div class="course-subtitle">{{ section.location }}</div>
+      <div class="course-subtitle">{{ session.location }}</div>
     </div>
 
     <!-- draggable -->
@@ -39,11 +39,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue'
+<script>
+import { defineComponent } from 'vue'
 import { useScheduleStore } from '../stores/schedule'
 import { useTimetableStore } from '../stores/timetable'
-import { CourseOnEdit, SectionOnEdit } from '../types'
 
 export default defineComponent({
   setup() {
@@ -54,18 +53,18 @@ export default defineComponent({
 
   props: {
     course: {
-      type: Object as PropType<CourseOnEdit>,
+      type: Object,
       required: true,
     },
-    section: {
-      type: Object as PropType<SectionOnEdit>,
+    session: {
+      type: Object,
       required: true,
     },
   },
 
   computed: {
     isSelected() {
-      return this.scheduleStore.selectedSection === this.section
+      return this.scheduleStore.selectedSession === this.session
     },
 
     timeslots() {
@@ -74,9 +73,9 @@ export default defineComponent({
 
     getPosition() {
       return {
-        gridArea: `${this.section.start! + 1} / ${
-          this.section.weekday! + 1
-        } / ${this.section.end! + 2} / span 1`,
+        gridArea: `${this.session.start + 1} / ${this.session.weekday + 1} / ${
+          this.session.end + 2
+        } / span 1`,
       }
     },
   },
@@ -84,90 +83,87 @@ export default defineComponent({
   methods: {
     unitHeight() {
       const cnt = Math.max(this.timeslots.length, 1)
-      return (document.getElementById('calendar')!.offsetHeight - 25) / cnt
+      return (document.getElementById('calendar').offsetHeight - 25) / cnt
     },
 
     unitWidth() {
-      return (document.getElementById('calendar')!.offsetWidth - 25) / 7
+      return (document.getElementById('calendar').offsetWidth - 25) / 7
     },
 
-    dragStart(e: DragEvent, type: 'top' | 'bottom' | 'entry') {
+    dragStart(e, type) {
+      this.scheduleStore.select(this.course, this.session)
+
       this.scheduleStore.startClientX = e.clientX
       this.scheduleStore.startClientY = e.clientY
       this.scheduleStore.dragType = type
-      this.scheduleStore.startSectionStart = this.section.start
-      this.scheduleStore.startSectionEnd = this.section.end
-      this.scheduleStore.startWeekday = this.section.weekday
+      this.scheduleStore.startSessionStart = this.session.start
+      this.scheduleStore.startSessionEnd = this.session.end
+      this.scheduleStore.startWeekday = this.session.weekday
 
       // hide drag preview
       let p = document.createElement('span')
       p.id = 'magic-drag-image'
       p.style.display = 'hidden'
       document.body.appendChild(p)
-      e.dataTransfer!.setDragImage(p, 0, 0)
+      e.dataTransfer.setDragImage(p, 0, 0)
     },
 
-    dragEnd(e: DragEvent) {
+    dragEnd(e) {
       this.scheduleStore.startClientX = null
       this.scheduleStore.startClientY = null
       this.scheduleStore.dragType = null
-      this.scheduleStore.startSectionStart = null
-      this.scheduleStore.startSectionEnd = null
+      this.scheduleStore.startSessionStart = null
+      this.scheduleStore.startSessionEnd = null
       this.scheduleStore.startWeekday = null
 
       document.getElementById('magic-drag-image')?.remove()
     },
 
-    getDelta(e: DragEvent) {
+    getDelta(e) {
       let dayDelta = 0,
         weekDelta = 0
 
       if (this.scheduleStore.startClientX && this.scheduleStore.startClientY) {
-        dayDelta =
-          (e.clientX - this.scheduleStore.startClientX) / this.unitWidth()
-        weekDelta =
-          (e.clientY - this.scheduleStore.startClientY) / this.unitHeight()
+        dayDelta = (e.clientX - this.scheduleStore.startClientX) / this.unitWidth()
+        weekDelta = (e.clientY - this.scheduleStore.startClientY) / this.unitHeight()
       }
 
       return {
         day: Math.round(dayDelta),
-        section: Math.round(weekDelta),
+        session: Math.round(weekDelta),
       }
     },
 
     // handle dragging
-    onDrag(e: DragEvent) {
+    onDrag(e) {
       const type = this.scheduleStore.dragType
       const delta = this.getDelta(e)
 
-      console.log('delta = (' + delta.day + ', ' + delta.section + ')')
+      console.log('delta = (' + delta.day + ', ' + delta.session + ')')
 
       if (type === 'top') {
-        const section = this.scheduleStore.startSectionStart! + delta.section
-        if (section <= this.section.end! && section >= 1) {
-          this.section.start = section
+        const session = this.scheduleStore.startSessionStart + delta.session
+        if (session <= this.session.end && session >= 1) {
+          this.session.start = session
         }
       } else if (type === 'bottom') {
-        const section = this.scheduleStore.startSectionEnd! + delta.section
-        if (
-          section >= this.section.start! &&
-          section <= this.timeslots.length
-        ) {
-          this.section.end = section
+        const session = this.scheduleStore.startSessionEnd + delta.session
+        if (session >= this.session.start && session <= this.timeslots.length) {
+          this.session.end = session
         }
       } else {
         // type === 'entry'
-        const newWeekday = this.scheduleStore.startWeekday! + delta.day
-        const newStart = this.scheduleStore.startSectionStart! + delta.section
-        const newEnd = this.scheduleStore.startSectionEnd! + delta.section
+        const newWeekday = this.scheduleStore.startWeekday + delta.day
+        const newStart = this.scheduleStore.startSessionStart + delta.session
+        const newEnd = this.scheduleStore.startSessionEnd + delta.session
 
         if (newWeekday < 1 || newWeekday > 7) return
         if (newStart < 1 || newStart > this.timeslots.length) return
         if (newEnd < 1 || newEnd > this.timeslots.length) return
 
-        this.section.weekday = newWeekday
-        this.section.start = newStart
-        this.section.end = newEnd
+        this.session.weekday = newWeekday
+        this.session.start = newStart
+        this.session.end = newEnd
       }
     },
   },
@@ -208,26 +204,29 @@ export default defineComponent({
 }
 
 .course-title {
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.2;
   font-weight: bold;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-height: calc(70% - 2px);
+  max-height: 26.4px;
 }
 
 .course-subtitle {
+  padding-top: 0.1em;
   font-size: 10px;
+  line-height: 1.1;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-height: calc(30% - 1px);
+  max-height: 22px;
 }
 
 .draggable {
   position: absolute;
   background-color: white;
   border: 2px solid royalblue;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   cursor: ns-resize;
 }

@@ -1,10 +1,8 @@
 <template>
   <Transition>
     <ul v-if="show && top && left">
-      <li v-if="hasSelected" @click="$emit('add-section-for-this')">
-        为选中的课程添加课时
-      </li>
-      <li @click="$emit('add-section-for-new')">创建新课程并添加课时</li>
+      <li v-if="hasSelected" @click="$emit('add-session-for-this')">为选中的课程添加课时</li>
+      <li @click="$emit('add-session-for-new')">创建新课程并添加课时</li>
     </ul>
   </Transition>
 </template>
@@ -31,7 +29,7 @@ export default defineComponent({
       default: 0,
     },
   },
-  emits: ['add-section-from-this', 'add-section-from-new'],
+  emits: ['add-session-for-this', 'add-session-for-new'],
 })
 </script>
 

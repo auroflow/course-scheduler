@@ -58,13 +58,13 @@ label {
 }
 
 /* 课时框 */
-.section-box {
+.session-box {
   margin-bottom: 5px;
   border: 1px solid grey;
   padding: 10px;
 }
 
-.section-box > .row {
+.session-box > .row {
   margin-left: 20px;
 }
 
