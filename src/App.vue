@@ -10,9 +10,6 @@
 <script>
 import { defineComponent } from 'vue'
 import TheNavbar from './components/TheNavbar.vue'
-import CourseCalendar from './components/CourseCalendar.vue'
-import CourseEdit from './components/CourseEdit.vue'
-import QuarterEdit from './components/QuarterEdit.vue'
 
 import { useScheduleStore } from './stores/schedule'
 import { useSemesterStore } from './stores/semester'
@@ -54,9 +51,6 @@ export default defineComponent({
 
   components: {
     TheNavbar,
-    CourseCalendar,
-    CourseEdit,
-    QuarterEdit,
   },
 
   methods: {
