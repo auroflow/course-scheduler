@@ -2,7 +2,7 @@
   <div id="root" @click="clearSelect">
     <TheNavbar></TheNavbar>
     <div id="main-container">
-      <router-view></router-view>
+      <router-view @clear="clear" @reset="reset"></router-view>
     </div>
   </div>
 </template>
@@ -59,18 +59,14 @@ export default defineComponent({
     },
 
     reset() {
-      if (window.confirm('确定还原样例内容？')) {
-        for (let store of this.stores) {
-          store.$reset()
-        }
+      for (let store of this.stores) {
+        store.reset()
       }
     },
 
     clear() {
-      if (window.confirm('确定清空所有内容？')) {
-        for (let store of this.stores) {
-          store.clear()
-        }
+      for (let store of this.stores) {
+        store.clear()
       }
     },
 
@@ -205,6 +201,19 @@ button:hover {
 }
 .edit-nav li.disabled::after {
   border-color: transparent transparent transparent var(--color-disabled);
+}
+.edit-nav a {
+  text-decoration: none;
+  color: inherit;
+}
+.edit-nav button {
+  display: inline;
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
 }
 
 /* form */

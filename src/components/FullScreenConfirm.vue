@@ -1,10 +1,10 @@
 <template>
-  <div class="alert">
+  <div v-if="modelValue" class="alert">
     <div class="content">
-      <p>进入下一步后，你将不能再更改学期数和每日课时数。是否继续？</p>
+      <p><slot></slot></p>
       <div class="buttons">
-        <button class="button" @click="$emit('confirm')">确认</button>
-        <button class="button" @click="$emit('cancel')">取消</button>
+        <button class="button" @click="confirm">确认</button>
+        <button class="button" @click="cancel">取消</button>
       </div>
     </div>
   </div>
@@ -13,7 +13,25 @@
 <script>
 import { defineComponent } from 'vue'
 
-export default defineComponent({})
+export default defineComponent({
+  props: {
+    modelValue: {
+      type: Boolean,
+      required: true,
+    },
+  },
+
+  methods: {
+    confirm() {
+      this.$emit('update:modelValue', false)
+      this.$emit('confirm')
+    },
+    cancel() {
+      this.$emit('update:modelValue', false)
+      this.$emit('cancel')
+    },
+  },
+})
 </script>
 
 <style scoped>

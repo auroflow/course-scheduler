@@ -34,7 +34,7 @@
         :key="weekday * session"
         class="cell"
         :style="getPosition(weekday, session, 1)"
-        @click="removeSelect"
+        @click.stop="removeSelect"
         @contextmenu.prevent.stop="invokeMenu($event, weekday, session)"
         @dragover.prevent
       ></div>
@@ -53,7 +53,7 @@
 
   <CourseCalendarCreate
     :show="menu.show"
-    :hasSelected="!!selectedSession"
+    :hasSelected="!!selectedCourse"
     :top="menu.top"
     :left="menu.left"
     @add-session-for-new="addCourse(menu.weekday, menu.session)"
@@ -63,7 +63,6 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { useTimetableStore } from '../stores/timetable'
 import { useScheduleStore } from '../stores/schedule'
 import { mapStores } from 'pinia'
 import CourseCalendarEntry from './CourseCalendarEntry.vue'
@@ -91,7 +90,7 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapStores(useTimetableStore, useScheduleStore, useSemesterStore),
+    ...mapStores(useScheduleStore, useSemesterStore),
 
     selectedCourse() {
       return this.scheduleStore.selectedCourse
@@ -106,7 +105,7 @@ export default defineComponent({
     },
 
     numSession() {
-      return this.timetableStore.timeslots.length
+      return this.semesterStore.timeslots.length
     },
 
     courses() {
@@ -118,7 +117,7 @@ export default defineComponent({
     },
 
     timeslots() {
-      return this.timetableStore.timeslots
+      return this.semesterStore.timeslots
     },
 
     coursesInCurrentQuarter() {
@@ -162,8 +161,7 @@ export default defineComponent({
     },
 
     addCourse(weekday, session) {
-      let newCourse = this.scheduleStore.newCourse()
-      newCourse.title = '新课程 #' + ++this.newCourseCount
+      const newCourse = this.scheduleStore.addCourse()
       newCourse.sessions.push({
         weekday: weekday,
         start: session,
@@ -172,10 +170,12 @@ export default defineComponent({
         note: '',
         freq: { type: 0 },
       })
-
-      this.scheduleStore.addCourse(newCourse)
-      let cidx = this.scheduleStore.courses.indexOf(newCourse)
-      document.getElementById(`course-${cidx}`).scrollIntoView()
+      let cidx = this.courses.indexOf(newCourse)
+      console.log(cidx)
+      this.scheduleStore.showCourseBox[cidx] = true
+      this.$nextTick(() => {
+        document.getElementById(`course-${cidx}`).scrollIntoView()
+      })
     },
 
     // invoked only when this.selectedCourse !== null.

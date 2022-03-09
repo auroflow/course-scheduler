@@ -3,58 +3,7 @@ import { useSemesterStore } from './semester'
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
-    courses: [
-      {
-        title: '编译原理',
-        instructor: '冯雁 陈纯',
-        quarters: [0, 1],
-        sessions: [
-          { weekday: 1, start: 6, end: 8, location: '曹西-103', note: '', freq: { type: 0 } },
-          { weekday: 2, start: 3, end: 4, location: '曹西-503', note: '', freq: { type: 0 } },
-        ],
-        exams: [{ date: '2022-06-21', start: '08:00', end: '10:00', location: '' }],
-      },
-      {
-        title: '乒乓球(初级班)',
-        instructor: '朱国华',
-        quarters: [0, 1],
-        sessions: [
-          { weekday: 2, start: 1, end: 2, location: '新桥门乒乓球房', note: '', freq: { type: 0 } },
-        ],
-        exams: [],
-      },
-      {
-        title: '大规模信息系统构建技术导论',
-        instructor: '鲁伟明',
-        quarters: [0],
-        sessions: [
-          { weekday: 1, start: 3, end: 4, location: '曹西-104', note: '', freq: { type: 0 } },
-          { weekday: 4, start: 3, end: 4, location: '曹西-104', note: '', freq: { type: 0 } },
-        ],
-        exams: [],
-      },
-      {
-        title: '网络安全原理与实践',
-        instructor: '卜凯',
-        quarters: [0],
-        sessions: [
-          { weekday: 1, start: 9, end: 10, location: '曹西-103', note: '', freq: { type: 0 } },
-          { weekday: 2, start: 7, end: 8, location: '曹西-503', note: '', freq: { type: 0 } },
-          { weekday: 2, start: 9, end: 10, location: '曹西-103', note: '', freq: { type: 0 } },
-        ],
-        exams: [{ date: '2022-04-16', start: '08:00', end: '10:00', location: '' }],
-      },
-      {
-        title: '网络与通信安全',
-        instructor: '谢磊',
-        quarters: [1],
-        sessions: [
-          { weekday: 1, start: 1, end: 2, location: '教7-104', note: '', freq: { type: 0 } },
-          { weekday: 3, start: 1, end: 2, location: '教7-104', note: '', freq: { type: 0 } },
-        ],
-        exams: [{ date: '2022-06-13', start: '14:00', end: '16:00', location: '' }],
-      },
-    ],
+    courses: [],
 
     selectedCourse: null,
     selectedSession: null,
@@ -228,8 +177,72 @@ export const useScheduleStore = defineStore('schedule', {
       this.courses = JSON.parse(courses)
     },
 
+    reset() {
+      this.courses = [
+        {
+          title: '编译原理',
+          instructor: '冯雁 陈纯',
+          quarters: [0, 1],
+          sessions: [
+            { weekday: 1, start: 6, end: 8, location: '曹西-103', note: '', freq: { type: 0 } },
+          ],
+          exams: [{ date: '2022-06-21', start: '08:00', end: '10:00', location: '' }],
+        },
+        {
+          title: '乒乓球(初级班)',
+          instructor: '朱国华',
+          quarters: [0, 1],
+          sessions: [
+            {
+              weekday: 2,
+              start: 1,
+              end: 2,
+              location: '新桥门乒乓球房',
+              note: '',
+              freq: { type: 0 },
+            },
+          ],
+          exams: [],
+        },
+        {
+          title: '大规模信息系统构建技术导论',
+          instructor: '鲁伟明',
+          quarters: [0],
+          sessions: [
+            { weekday: 1, start: 3, end: 4, location: '曹西-104', note: '', freq: { type: 0 } },
+            { weekday: 4, start: 3, end: 4, location: '曹西-104', note: '', freq: { type: 0 } },
+          ],
+          exams: [],
+        },
+        {
+          title: '网络安全原理与实践',
+          instructor: '卜凯',
+          quarters: [0],
+          sessions: [
+            { weekday: 1, start: 9, end: 10, location: '曹西-103', note: '', freq: { type: 0 } },
+            { weekday: 2, start: 7, end: 8, location: '曹西-503', note: '', freq: { type: 0 } },
+            { weekday: 2, start: 9, end: 10, location: '曹西-103', note: '', freq: { type: 0 } },
+          ],
+          exams: [{ date: '2022-04-16', start: '08:00', end: '10:00', location: '' }],
+        },
+        {
+          title: '网络与通信安全',
+          instructor: '谢磊',
+          quarters: [1],
+          sessions: [
+            { weekday: 1, start: 1, end: 2, location: '教7-104', note: '', freq: { type: 0 } },
+            { weekday: 3, start: 1, end: 2, location: '教7-104', note: '', freq: { type: 0 } },
+          ],
+          exams: [{ date: '2022-06-13', start: '14:00', end: '16:00', location: '' }],
+        },
+      ]
+      this.selectedCourse = null
+      this.selectedSession = null
+      this.showCourseBox = []
+    },
+
     clear() {
-      this.courses = []
+      this.$reset()
     },
   },
 })

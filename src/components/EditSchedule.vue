@@ -1,9 +1,13 @@
 <template>
   <div class="container">
     <ol class="edit-nav">
-      <li class="disabled">编辑校历</li>
+      <li class="disabled">
+        <router-link :to="{ name: 'edit-semester' }">编辑校历</router-link>
+      </li>
       <li>编辑课表</li>
-      <li class="disabled">保存和导出</li>
+      <li class="disabled">
+        <router-link :to="{ name: 'save-and-export' }">保存和导出</router-link>
+      </li>
     </ol>
 
     <div class="gridbox">

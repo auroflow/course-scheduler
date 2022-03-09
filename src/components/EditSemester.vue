@@ -2,8 +2,8 @@
   <div class="container">
     <ol class="edit-nav">
       <li>编辑校历</li>
-      <li class="disabled">编辑课表</li>
-      <li class="disabled">保存和导出</li>
+      <li class="disabled"><button @click="nextStep">编辑课表</button></li>
+      <li class="disabled"><button @click="jumpTo('save-and-export')">保存和导出</button></li>
     </ol>
 
     <form class="gridbox" @submit.prevent @change="validate">
@@ -98,10 +98,20 @@
     </form>
 
     <div class="buttons">
+      <button class="button" @click="clearConfirm = true">清空内容</button>
+      <button class="button" @click="resetConfirm = true">加载样例</button>
       <button class="button" @click="nextStep">下一步</button>
     </div>
 
-    <EditSemesterConfirm v-if="confirm" @cancel="confirm = false" @confirm="submit" />
+    <FullScreenConfirm v-model="clearConfirm" @confirm="clear">
+      是否删除所有校历和课表信息？
+    </FullScreenConfirm>
+    <FullScreenConfirm v-model="resetConfirm" @confirm="reset">
+      是否加载样例内容？当前所有校历和课表信息将会丢失。
+    </FullScreenConfirm>
+    <FullScreenConfirm v-model="nextConfirm" @confirm="submit">
+      进入下一步后，你将不能再更改学期数和每日课程数。是否继续？
+    </FullScreenConfirm>
   </div>
 </template>
 
@@ -110,19 +120,14 @@ import { useTimetableStore } from '../stores/timetable'
 import { useSemesterStore } from '../stores/semester'
 import { defineComponent } from 'vue'
 import { mapState, mapStores } from 'pinia'
-import { useVuelidate } from '@vuelidate/core'
-import EditSemesterConfirm from './EditSemesterConfirm.vue'
+import FullScreenConfirm from './FullScreenConfirm.vue'
 
 export default defineComponent({
-  setup() {
-    return {
-      v$: useVuelidate({ $lazy: true }),
-    }
-  },
-
   data: () => ({
     showAdvanced: false,
-    confirm: false,
+    nextConfirm: false,
+    clearConfirm: false,
+    resetConfirm: false,
     errors: {
       timeslots: [],
       quarters: [],
@@ -130,8 +135,6 @@ export default defineComponent({
       quarter: '',
     },
   }),
-
-  validations: () => ({}),
 
   computed: {
     ...mapStores(useSemesterStore, useTimetableStore),
@@ -262,9 +265,19 @@ export default defineComponent({
       this.sortTimeslots()
       if (!(await this.validate())) {
         if (!this.initDone) {
-          this.confirm = true
+          this.nextConfirm = true
         } else {
           this.submit()
+        }
+      }
+    },
+
+    async jumpTo(name) {
+      if (!this.initDone) {
+        await this.nextStep()
+      } else {
+        if (!(await this.validate())) {
+          this.$router.push({ name: name })
         }
       }
     },
@@ -274,8 +287,16 @@ export default defineComponent({
       this.confirm = false
       this.$router.push({ name: 'edit-schedule' })
     },
+
+    clear() {
+      this.$emit('clear')
+    },
+
+    reset() {
+      this.$emit('reset')
+    },
   },
-  components: { EditSemesterConfirm },
+  components: { FullScreenConfirm: FullScreenConfirm },
 })
 </script>
 
